@@ -120,6 +120,10 @@ def segment_max(logits, segment_ids, keep_length=True):
     1d Tensor
     """
     device = logits.get_device()
+    if device == -1:
+        device = torch.device('cpu')
+    else:
+        device = torch.device('cuda:{}'.format(device))
     n_logits = len(segment_ids)
     mask = segment_ids[1:] != segment_ids[:-1]
     seg_head_ids = np.concatenate([np.array([0]),
