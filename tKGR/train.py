@@ -117,7 +117,7 @@ parser.add_argument('--weight_factor', type=float, default=2, help='sampling 3, 
 parser.add_argument('--node_score_aggregation', type=str, default='sum', choices=['sum', 'mean', 'max'])
 parser.add_argument('--ent_score_aggregation', type=str, default='sum', choices=['sum', 'mean'])
 parser.add_argument('--emb_static_ratio', type=float, default=1, help='ratio of static embedding to time(temporal) embeddings')
-parser.add_argument('--add_reverse', action='store_true', default=True, help='add reverse relation into data set')
+parser.add_argument('--add_reverse', action='store_true', default=False, help='add reverse relation into data set')
 parser.add_argument('--loss_fn', type=str, default='BCE', choices=['BCE', 'CE'])
 parser.add_argument('--no_time_embedding', action='store_true', default=False, help='set to stop use time embedding')
 parser.add_argument('--random_seed', type=int, default=1)
@@ -167,15 +167,18 @@ if __name__ == "__main__":
 
         adj = contents.get_adj_dict()
         max_time = max(contents.data[:, 3])
+        min_time = min(contents.data[:, 3])
 
         # construct NeighborFinder
         if 'yago' in args.dataset.lower():
             time_granularity = 1
         elif 'icews' in args.dataset.lower():
             time_granularity = 24
+        elif 'ml' in args.dataset.lower():
+            time_granularity = 100
         else:
             raise ValueError
-        nf = NeighborFinder(adj, sampling=args.sampling, max_time=max_time, num_entities=contents.num_entities,
+        nf = NeighborFinder(adj, sampling=args.sampling, max_time=max_time,min_time=min_time, num_entities=contents.num_entities,
                             weight_factor=args.weight_factor, time_granularity=time_granularity)
         # construct model
         model = xERTE(nf, contents.num_entities, contents.num_relations, args.emb_dim, DP_steps=args.DP_steps,

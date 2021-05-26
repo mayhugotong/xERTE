@@ -43,10 +43,12 @@ class Data:
             self.train_data = np.concatenate([self.train_data[:, :-1],
                                               np.vstack([[event[2], event[1] + num_relations, event[0], event[3]]
                                                    for event in self.train_data])], axis=0)
-        seen_entities = set(self.train_data[:, 0]).union(set(self.train_data[:, 2]))
+        # seen_entities = set(self.train_data[:, 0]).union(set(self.train_data[:, 2]))
+        seen_users = set(self.train_data[:, 0])
+        seen_items = set(self.train_data[:, 2])
         seen_relations = set(self.train_data[:, 1])
 
-        val_mask = [evt[0] in seen_entities and evt[2] in seen_entities and evt[1] in seen_relations
+        val_mask = [evt[0] in seen_users and evt[2] in seen_items and evt[1] in seen_relations
                     for evt in self.valid_data]
         self.valid_data_seen_entity = self.valid_data[val_mask]
 
@@ -58,7 +60,7 @@ class Data:
                                                     np.vstack([[event[2], event[1] + num_relations, event[0], event[3]]
                                                                for event in self.valid_data_seen_entity])], axis=0)
 
-        test_mask = [evt[0] in seen_entities and evt[2] in seen_entities and evt[1] in seen_relations
+        test_mask = [evt[0] in seen_users and evt[2] in seen_items and evt[1] in seen_relations
                      for evt in self.test_data]
         test_mask_conjugate = ~np.array(test_mask)
 
@@ -218,7 +220,7 @@ class Data:
 
 
 class NeighborFinder:
-    def __init__(self, adj, sampling=1, max_time=366 * 24, num_entities=None, weight_factor=1, time_granularity=24):
+    def __init__(self, adj, sampling=1, max_time=366 * 24, min_time=0, num_entities=None, weight_factor=1, time_granularity=24):
         """
         Params
         ------
@@ -233,7 +235,7 @@ class NeighborFinder:
         """
 
         self.time_granularity = time_granularity
-        node_idx_l, node_ts_l, edge_idx_l, off_set_l, off_set_t_l = self.init_off_set(adj, max_time, num_entities)
+        node_idx_l, node_ts_l, edge_idx_l, off_set_l, off_set_t_l = self.init_off_set(adj, max_time, min_time, num_entities)
         self.node_idx_l = node_idx_l
         self.node_ts_l = node_ts_l
         self.edge_idx_l = edge_idx_l
@@ -244,7 +246,7 @@ class NeighborFinder:
         self.sampling = sampling
         self.weight_factor = weight_factor
 
-    def init_off_set(self, adj, max_time, num_entities):
+    def init_off_set(self, adj, max_time, min_time, num_entities):
         """
         for events with entity of index i being subject:
         node_idx_l[off_set_l[i]:off_set_l[i+1]] is the list of object index
@@ -284,7 +286,7 @@ class NeighborFinder:
                 n_ts_l.extend(curr_ts)
 
                 off_set_l.append(len(n_idx_l))
-                off_set_t_l.append([np.searchsorted(curr_ts, cut_time, 'left') for cut_time in range(0, max_time+1, self.time_granularity)])# max_time+1 so we have max_time
+                off_set_t_l.append([np.searchsorted(curr_ts, cut_time, 'left') for cut_time in range(min_time, max_time+1, self.time_granularity)])# max_time+1 so we have max_time
 
         n_idx_l = np.array(n_idx_l)
         n_ts_l = np.array(n_ts_l)
