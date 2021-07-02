@@ -91,7 +91,7 @@ class Data:
         with open(os.path.join(data_dir, "{}.txt".format(data_type)), 'r', encoding='utf-8') as f:
             data = f.readlines()
             data = np.array([line.split("\t") for line in data])  # only cut by "\t", not by white space.
-            data = np.vstack([[int(_.strip()) for _ in line] for line in data])  # remove white space
+            data = np.vstack([[int(float(_.strip())) for _ in line] for line in data])  # remove white space
         return data
 
     @staticmethod
@@ -141,6 +141,7 @@ class Data:
         with open(os.path.join(DataDir, dataset, "entity2id.txt"), 'r', encoding='utf-8') as f:
             mapping = f.readlines()
             mapping = [entity.strip().split("\t") for entity in mapping]
+            # mapping = {int(float(ent2idx[1].strip())): ent2idx[0].strip() for ent2idx in mapping}
             mapping = {int(ent2idx[1].strip()): ent2idx[0].strip() for ent2idx in mapping}
         return mapping
 
@@ -150,6 +151,7 @@ class Data:
             mapping = [relation.strip().split("\t") for relation in mapping]
             id2relation = {}
             for rel2idx in mapping:
+                # id2relation[int(float(rel2idx[1].strip()))] = rel2idx[0].strip()
                 id2relation[int(rel2idx[1].strip())] = rel2idx[0].strip()
         return id2relation
 

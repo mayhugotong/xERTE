@@ -175,7 +175,9 @@ if __name__ == "__main__":
         elif 'icews' in args.dataset.lower():
             time_granularity = 24
         elif 'ml' in args.dataset.lower():
-            time_granularity = 100
+            time_granularity = 1000000
+        elif 'delicious' in args.dataset.lower():
+            time_granularity = 1000000
         else:
             raise ValueError
         nf = NeighborFinder(adj, sampling=args.sampling, max_time=max_time,min_time=min_time, num_entities=contents.num_entities,
